@@ -1,0 +1,152 @@
+---
+title: "Linear mixed-effects models to control for the variability of microsatellite loci when comparing genetic diversity"
+---
+
+# Introduction
+
+There is general interest in comparing the amount of genetic variation among different populations, usually measured as number of alleles, heterozygosity and/or allelic richness. Petit et al. (2005) were the first to emphasize the importance of controlling for the fact that microsatellite variation is dependent from the length of the microsatellite markers employed. They proposed the use of an ANCOVA framework when comparing genetic variation of microsatellite markers, with the mean number of repeats (MNR) included as covariate.
+
+Here we suggest the use of linear mixed-effects models (LMMs) to control for the variability of microsatellite loci when comparing genetic diversity.This approach has less assumptions and is more statistically powerful than ANCOVA (Crawley 2007). 
+
+# Assumptions
+
+- The explanatory variables are related linearly to the response
+- The errors have constant variance
+- The errors are independent
+- The errors are Normally distributed
+
+# Resources
+
+## Data
+
+As an example we'll use the comparison in Allelic Richness among populations of the orchid bee Euglossa dilemma in the Yucatan peninsula (Soro et al. submitted). The 24 sites where populations were sampled were assigned to 4 categories corresponding to different degrees of habitat fragmentation: 1) Natural (N); 2) Disturbed (D); 3) City (C); 4) Island (I). We provide a data file (GenDivEuglossa.txt), where for each Locality (population) under a certain Management (fixed factor), Allelic Richness rariefied to a minimum sample size of 10 individuals(response variable), has been calculated at each Locus (random factor).The data are stored in the file called [GenDivEuglossa.txt](https://github.com/nescent/popgenInfo/blob/master/data/GenDivEuglossa.txt).
+
+## Packages
+
+Packages required:
+
+Loading the required packages:  
+
+```{r, packages, message=FALSE}
+library("lme4")
+library("MuMIn")
+library("multcomp")
+```
+
+# Analysis
+
+## Section 1: Load the data
+
+At first we need to load our dataset. We will import "GenDivEuglossa.txt". 
+
+```{r, load_data_show, eval=FALSE}
+GenDivEuglossa <- read.delim("GenDivEuglossa.txt", header = TRUE)
+summary(GenDivEuglossa)
+str(GenDivEuglossa)
+```
+
+```{r, load_data_evaluate, echo=FALSE}
+# Note: the code chunk above will be shown to the reader, but it will not run.
+# This code chunk will run, but will not be shown to the reader.
+GenDivEuglossa <- read.delim("GenDivEuglossa.txt", header = TRUE)
+summary(GenDivEuglossa)
+str(GenDivEuglossa)
+```
+
+
+## Section 2: Data analysis/Checking assumptions  
+
+Second, we build our model using the function lmer (). With this command, we create a model with Allellic Richness as response with Management and Locus as fixed and random effects factors respectively.
+
+```{r, load_data_show, eval=FALSE}
+modelMANAG<-lmer(AllelicRichness~Management+(1|Locus), GenDivEuglossa)
+summary
+```
+
+```{r, load_data_evaluate, echo=FALSE}
+# Note: the code chunk above will be shown to the reader, but it will not run.
+# This code chunk will run, but will not be shown to the reader.
+modelMANAG<-lmer(AllelicRichness~Management+(1|Locus), GenDivEuglossa)
+summary(modelMANAG)
+```
+
+Now, we check our model assumptions. We check for normality and homogeneity by inspecting the residual plot. This plot depicts fitted values on the x-axis and residuals on the y-axis.
+
+```{r, load_data_show, eval=FALSE}
+plot(modelMANAG)
+```
+
+```{r, load_data_evaluate, echo=FALSE}
+# Note: the code chunk above will be shown to the reader, but it will not run.
+# This code chunk will run, but will not be shown to the reader.
+plot(modelMANAG)
+```
+
+## Section 3: Summary statistics 
+
+In order to see the effect of our fixed factor 'Management', and compare the performance of our mixed model, we run a likelihood ratio test, comparing our model (modelMANAG), which includes the fixed factor "Management", with a model (modelNULL) that excludes it.
+
+```{r, load_data_show, eval=FALSE}
+modelMANAG<-lmer(AllelicRichness~Management+(1|Locus), GenDivEuglossa, REML=FALSE)
+modelNULL<-lmer(AllelicRichness~1+(1|Locus), GenDivEuglossa, REML=FALSE)
+anova(modelMANAG, modelNULL)
+```
+
+```{r, load_data_evaluate, echo=FALSE}
+# Note: the code chunk above will be shown to the reader, but it will not run.
+# This code chunk will run, but will not be shown to the reader.
+modelMANAG<-lmer(AllelicRichness~Management+(1|Locus), GenDivEuglossa, REML=FALSE)
+modelNULL<-lmer(AllelicRichness~1+(1|Locus), GenDivEuglossa, REML=FALSE)
+anova(modelMANAG, modelNULL)
+```
+
+
+We then quantify the variance accounted by "Management" alone (marginal R2 (Nakagawa and Schielzeth 2013)) and the variance accounted for by marker variability (conditional R2 (Nakagawa and Schielzeth 2013)). 
+
+```{r, load_data_show, eval=FALSE}
+r.squaredGLMM(modelMANAG)
+```
+
+```{r, load_data_evaluate, echo=FALSE}
+# Note: the code chunk above will be shown to the reader, but it will not run.
+# This code chunk will run, but will not be shown to the reader.
+r.squaredGLMM(modelMANAG)
+```
+
+Finally we test for differences in Allelic Richness among different locality types by Tukey HSD post-hoc comparisons.
+
+```{r, load_data_show, eval=FALSE}
+posthoc<-glht(modelMANAG, linfct = mcp(Management = "Tukey"))
+summary(posthoc)
+```
+
+```{r, load_data_evaluate, echo=FALSE}
+posthoc<-glht(modelMANAG, linfct = mcp(Management = "Tukey"))
+summary(posthoc)
+``` 
+
+# Contributors
+
+- Panagiotis Theodorou (Author)
+- Antonella Soro (Author)
+
+# References
+
+Crawley, M. J. (2007).The R Book. West Sussex: J. Wiley.
+Nakagawa, S. & Schielzeth, H. (2013). A general and simple method for obtainin R2 from generalized linear mixed-e???ects models. Methods in Ecology and Evolution, 4,133-142.
+Petit, R.J., Deguilloux, M.F., Chat, J., Grivet, D., Garnier-Gere, P.& Vendramin, G.G. (2005). Standardizing for microsatellite length in comparisons of genetic diversity. Molecualr Ecology, 14,885-890.
+Soro A., Quezada-Euan J. G., Theodorou P., Moritz R.F.A.,Paxton R.J. (2016). The population genetics of two orchid bees suggests high Ne, high dispersal, low diploid male production and only a effect of island isolation in lowering genetic diversity. (submitted to Conservation Genetics)
+
+# Session Information
+
+This shows us useful information for reproducibility. Of particular importance
+are the versions of R and the packages used to create this workflow. It is
+considered good practice to record this information with every analysis.
+
+```{r, sessioninfo}
+options(width = 100)
+devtools::session_info()
+```
+
+
+
