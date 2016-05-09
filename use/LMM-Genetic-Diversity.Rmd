@@ -25,7 +25,10 @@ As an example we'll use the comparison in Allelic Richness among populations of 
 
 Packages required:
 
-Loading the required packages:  
+Loading the required packages:
+lm4: Package for fitting linear and generalized linear mixed-effects models.
+MuMIn: Package mainly used for model selection and model averaging based on information criteria. Here we use the r.squaredGLMM function to calculate conditional and marginal coefficient of determination.
+multcomp: Package used for simultaneous inference in general parametric models. The glht function can be used for multiple comparisons in linear mixed effects models.
 
 ```{r, packages, message=FALSE}
 library("lme4")
@@ -39,16 +42,16 @@ library("multcomp")
 
 At first we need to load our dataset. We will import "GenDivEuglossa.txt". 
 
-```{r, load_data_show, eval=FALSE}
-GenDivEuglossa <- read.delim("GenDivEuglossa.txt", header = TRUE)
+```{r, eval=FALSE}
+GenDivEuglossa <- read.delim("../data/GenDivEuglossa.txt", header = TRUE)
 summary(GenDivEuglossa)
 str(GenDivEuglossa)
 ```
 
-```{r, load_data_evaluate, echo=FALSE}
+```{r, echo=FALSE}
 # Note: the code chunk above will be shown to the reader, but it will not run.
 # This code chunk will run, but will not be shown to the reader.
-GenDivEuglossa <- read.delim("GenDivEuglossa.txt", header = TRUE)
+GenDivEuglossa <- read.delim("../data/GenDivEuglossa.txt", header = TRUE)
 summary(GenDivEuglossa)
 str(GenDivEuglossa)
 ```
@@ -56,14 +59,14 @@ str(GenDivEuglossa)
 
 ## Section 2: Data analysis/Checking assumptions  
 
-Second, we build our model using the function lmer (). With this command, we create a model with Allellic Richness as response with Management and Locus as fixed and random effects factors respectively.
+Second, we build our model using the function lmer () from the lme4 package. With this command, we create a model with Allellic Richness as response with Management and Locus as fixed and random effects factors respectively.
 
-```{r, load_data_show, eval=FALSE}
+```{r, eval=FALSE}
 modelMANAG<-lmer(AllelicRichness~Management+(1|Locus), GenDivEuglossa)
 summary
 ```
 
-```{r, load_data_evaluate, echo=FALSE}
+```{r, echo=FALSE}
 # Note: the code chunk above will be shown to the reader, but it will not run.
 # This code chunk will run, but will not be shown to the reader.
 modelMANAG<-lmer(AllelicRichness~Management+(1|Locus), GenDivEuglossa)
@@ -72,11 +75,11 @@ summary(modelMANAG)
 
 Now, we check our model assumptions. We check for normality and homogeneity by inspecting the residual plot. This plot depicts fitted values on the x-axis and residuals on the y-axis.
 
-```{r, load_data_show, eval=FALSE}
+```{r, eval=FALSE}
 plot(modelMANAG)
 ```
 
-```{r, load_data_evaluate, echo=FALSE}
+```{r, echo=FALSE}
 # Note: the code chunk above will be shown to the reader, but it will not run.
 # This code chunk will run, but will not be shown to the reader.
 plot(modelMANAG)
@@ -86,13 +89,13 @@ plot(modelMANAG)
 
 In order to see the effect of our fixed factor 'Management', and compare the performance of our mixed model, we run a likelihood ratio test, comparing our model (modelMANAG), which includes the fixed factor "Management", with a model (modelNULL) that excludes it.
 
-```{r, load_data_show, eval=FALSE}
+```{r, eval=FALSE}
 modelMANAG<-lmer(AllelicRichness~Management+(1|Locus), GenDivEuglossa, REML=FALSE)
 modelNULL<-lmer(AllelicRichness~1+(1|Locus), GenDivEuglossa, REML=FALSE)
 anova(modelMANAG, modelNULL)
 ```
 
-```{r, load_data_evaluate, echo=FALSE}
+```{r, echo=FALSE}
 # Note: the code chunk above will be shown to the reader, but it will not run.
 # This code chunk will run, but will not be shown to the reader.
 modelMANAG<-lmer(AllelicRichness~Management+(1|Locus), GenDivEuglossa, REML=FALSE)
@@ -103,11 +106,11 @@ anova(modelMANAG, modelNULL)
 
 We then quantify the variance accounted by "Management" alone (marginal R2 (Nakagawa and Schielzeth 2013)) and the variance accounted for by marker variability (conditional R2 (Nakagawa and Schielzeth 2013)). 
 
-```{r, load_data_show, eval=FALSE}
+```{r, eval=FALSE}
 r.squaredGLMM(modelMANAG)
 ```
 
-```{r, load_data_evaluate, echo=FALSE}
+```{r,echo=FALSE}
 # Note: the code chunk above will be shown to the reader, but it will not run.
 # This code chunk will run, but will not be shown to the reader.
 r.squaredGLMM(modelMANAG)
@@ -115,12 +118,12 @@ r.squaredGLMM(modelMANAG)
 
 Finally we test for differences in Allelic Richness among different locality types by Tukey HSD post-hoc comparisons.
 
-```{r, load_data_show, eval=FALSE}
+```{r, eval=FALSE}
 posthoc<-glht(modelMANAG, linfct = mcp(Management = "Tukey"))
 summary(posthoc)
 ```
 
-```{r, load_data_evaluate, echo=FALSE}
+```{r, echo=FALSE}
 posthoc<-glht(modelMANAG, linfct = mcp(Management = "Tukey"))
 summary(posthoc)
 ``` 
